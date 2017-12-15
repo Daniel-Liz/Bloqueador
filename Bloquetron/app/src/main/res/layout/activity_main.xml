@@ -14,13 +14,26 @@
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp">
 
-        <ListView
-            android:id="@+id/listaDeNumeros"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="8dp" />
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Lista de Números Bloqueados:" />
+
+            <ListView
+                android:id="@+id/listaDeNumeros"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                tools:layout_editor_absoluteX="8dp"
+                tools:layout_editor_absoluteY="8dp" />
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="63dp"
@@ -36,8 +49,9 @@
                 android:layout_margin="10dp"
                 android:clickable="true"
                 android:onClick="adicionarContatoLista"
+                app:backgroundTint="#0097c4"
                 app:fabSize="mini"
-                app:srcCompat="@android:drawable/ic_menu_add"
+                app:srcCompat="@drawable/add_contato"
                 tools:layout_editor_absoluteX="300dp"
                 tools:layout_editor_absoluteY="16dp" />
 
@@ -45,12 +59,13 @@
                 android:id="@+id/floatingActionButton"
                 android:layout_width="80dp"
                 android:layout_height="50dp"
-                android:clickable="true"
-                app:fabSize="mini"
-                android:onClick="abrirDialogo"
                 android:layout_gravity="end|bottom"
                 android:layout_margin="10dp"
-                app:srcCompat="@android:drawable/ic_input_add" />
+                android:clickable="true"
+                android:onClick="abrirDialogo"
+                app:backgroundTint="#0097c4"
+                app:fabSize="mini"
+                app:srcCompat="@drawable/add_numero" />
         </LinearLayout>
 
     </LinearLayout>
