@@ -22,18 +22,37 @@
             tools:layout_editor_absoluteX="8dp"
             tools:layout_editor_absoluteY="8dp" />
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/floatingActionButton2"
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:layout_gravity="end|bottom"
-            android:layout_margin="10dp"
-            android:clickable="true"
-            android:onClick="abrirDialogo"
-            app:fabSize="mini"
-            app:srcCompat="@android:drawable/ic_menu_add"
-            tools:layout_editor_absoluteX="300dp"
-            tools:layout_editor_absoluteY="16dp" />
+        <LinearLayout
+            android:layout_width="63dp"
+            android:layout_height="match_parent"
+            android:gravity="bottom"
+            android:orientation="vertical">
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatingActionButton2"
+                android:layout_width="80dp"
+                android:layout_height="50dp"
+                android:layout_gravity="end|bottom"
+                android:layout_margin="10dp"
+                android:clickable="true"
+                android:onClick="adicionarContatoLista"
+                app:fabSize="mini"
+                app:srcCompat="@android:drawable/ic_menu_add"
+                tools:layout_editor_absoluteX="300dp"
+                tools:layout_editor_absoluteY="16dp" />
+
+            <android.support.design.widget.FloatingActionButton
+                android:id="@+id/floatingActionButton"
+                android:layout_width="80dp"
+                android:layout_height="50dp"
+                android:clickable="true"
+                app:fabSize="mini"
+                android:onClick="abrirDialogo"
+                android:layout_gravity="end|bottom"
+                android:layout_margin="10dp"
+                app:srcCompat="@android:drawable/ic_input_add" />
+        </LinearLayout>
+
     </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

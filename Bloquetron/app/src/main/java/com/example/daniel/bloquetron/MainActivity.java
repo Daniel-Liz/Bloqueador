@@ -1,8 +1,12 @@
 package com.example.daniel.bloquetron;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -38,6 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private BloqueadorDeSms bloqueadorDeSms;
     private FileOutputStream fos = null;
     private int posicao;
+    private String telAux;
+
+    private static final int CONTACTS_INTENT = 1;
 
 
     @Override
@@ -57,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE}, REQUEST_PERMISSION);
+            requestPermissions(new String[]{Manifest.permission.RECEIVE_SMS, Manifest.permission.CALL_PHONE,Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE,Manifest.permission.READ_CONTACTS}, REQUEST_PERMISSION);
         }
     }
 
@@ -76,19 +83,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void adicionarNumero(View v){
-        mList.add("0"+Mask.unmask(numero.getText().toString()));
-        try {
-            fos = openFileOutput(FILENAME, MODE_APPEND);
-            fos.write(("0"+Mask.unmask(numero.getText().toString())+";").getBytes());
-            Log.e(TAG, "0"+Mask.unmask(numero.getText().toString()));
-            fos.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        }
-
-        mArrayAdapter.notifyDataSetChanged();
-        bloqueadorDeChamadas.setMList(mList);
-        bloqueadorDeSms.setMList(mList);
+        salvarContato("0"+Mask.unmask(numero.getText().toString()));
         dialog.dismiss();
     }
 
@@ -138,8 +133,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 posicao = position;
-                final String num = mArrayAdapter.getItem(position);
-                Log.e(TAG, num);
+                telAux = mArrayAdapter.getItem(position);
+                Log.e(TAG, telAux);
 
                 AlertDialog.Builder dialog1 = new AlertDialog.Builder(MainActivity.this);
                 View edicaoNumero = inflater.inflate(R.layout.edicao_numero, null);
@@ -148,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
                 numero = (EditText) dialog.findViewById(R.id.edicaoNumeroEditText);
                 numero.addTextChangedListener(Mask.insert("(##)#####-####",numero));
-                numero.setText(num.substring(1));
+                numero.setText(telAux.substring(1));
             }
         });
     }
@@ -170,18 +165,86 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void confirmarItem(View v){
-        mList.set(posicao, "0"+Mask.unmask(numero.getText().toString()));
-        mArrayAdapter.notifyDataSetChanged();
-        dialog.dismiss();
-        try {
-            fos = openFileOutput(FILENAME, MODE_PRIVATE);
-            for (String n : mList) {
-                fos.write((n+";").getBytes());
-                Log.e(TAG, n);
-            }
-            fos.close();
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
+        String tel = "0"+Mask.unmask(numero.getText().toString());
+        if(!telAux.equals(tel)) {
+            if(!mList.contains(tel)) {
+                mList.set(posicao, tel);
+                mArrayAdapter.notifyDataSetChanged();
+                try {
+                    fos = openFileOutput(FILENAME, MODE_PRIVATE);
+                    for (String n : mList) {
+                        fos.write((n + ";").getBytes());
+                        Log.e(TAG, n);
+                    }
+                    fos.close();
+                } catch (IOException e) {
+                    Log.e(TAG, e.getMessage());
+                }
+            }else Toast.makeText(MainActivity.this,"Este número já se encontra na lista!",Toast.LENGTH_LONG).show();
         }
+        dialog.dismiss();
     }
+
+    public void adicionarContatoLista(View v){
+        Intent intent1 = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        startActivityForResult(intent1, CONTACTS_INTENT);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == CONTACTS_INTENT && resultCode == RESULT_OK ){
+            Uri uri = data.getData();
+
+            Cursor cursor = getContentResolver().query(uri, null, null, null, null);
+
+            int idIndex = cursor.getColumnIndex(ContactsContract.Contacts._ID);
+            cursor.moveToNext();
+            String id = cursor.getString(idIndex);
+
+            Cursor telefoneCursor = getContentResolver()
+                    .query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI, null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ?",
+                            new String[]{id}, null);
+
+            int telIndex = telefoneCursor.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
+            telefoneCursor.moveToNext();
+            String telefone = telefoneCursor.getString(telIndex);
+            if(telefone.contains("+55")) padronizaTelefone(telefone.substring(4));
+            else padronizaTelefone(telefone);
+
+            telefoneCursor.close();
+
+            cursor.close();
+
+        }
+
+    }
+
+    public void padronizaTelefone(String telefone){
+        telefone = telefone.replaceAll(" ","").replaceAll("[-]","");
+        if(telefone.length()<=9) telefone = "035"+telefone;
+        else if(telefone.charAt(0)!='0') telefone = "0"+telefone;
+
+        salvarContato(telefone);
+    }
+
+    public void salvarContato(String telefone){
+        if(!mList.contains(telefone)) {
+            mList.add(telefone);
+            try {
+                fos = openFileOutput(FILENAME, MODE_APPEND);
+                fos.write((telefone + ";").getBytes());
+                fos.close();
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+            }
+
+            mArrayAdapter.notifyDataSetChanged();
+            bloqueadorDeChamadas.setMList(mList);
+            bloqueadorDeSms.setMList(mList);
+        }else Toast.makeText(MainActivity.this,"Este número já se encontra na lista!",Toast.LENGTH_LONG).show();
+    }
+
 }
