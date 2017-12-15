@@ -47,6 +47,7 @@ public class BloqueadorDeChamadas extends BroadcastReceiver{
                             Method methodEndCall = telephonyInterfaceClass.getDeclaredMethod("endCall");
 
                             methodEndCall.invoke(telephonyInterface);
+
                         }
 
                     }

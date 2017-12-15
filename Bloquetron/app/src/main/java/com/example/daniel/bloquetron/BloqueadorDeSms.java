@@ -3,6 +3,8 @@ package com.example.daniel.bloquetron;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
@@ -45,11 +47,27 @@ public class BloqueadorDeSms extends BroadcastReceiver {
                                 .createFromPdu((byte[]) pdusObj[0]);
                     }
                     phoneNumber = currentMessage.getDisplayOriginatingAddress();
-                    Log.e(TAG, "0"+phoneNumber.substring(3));
+
 
                     if(getMList().contains("0"+phoneNumber.substring(3))) {
                         abortBroadcast();
-                        Log.e(TAG, getAbortBroadcast()+"");
+                        Uri uriSMS = Uri.parse("content://sms/inbox");
+
+                        Cursor cursor = context.getContentResolver().query(uriSMS, null, null, null, null);
+
+                        cursor.moveToFirst();
+
+                        if(cursor.getCount() > 0){
+                            do {
+                                Log.e(TAG, cursor.getString(2)+"   "+phoneNumber);
+                                if (cursor.getString(2).equals(phoneNumber)){
+                                    Log.e(TAG, cursor.getInt(1)+"   "+cursor.getString(2));
+                                    int id = cursor.getInt(1);
+                                    context.getContentResolver().delete(Uri.parse("content://sms/"+id), null,null);
+                                    return;
+                                }
+                            }while(cursor.moveToNext());
+                        }
                     }
                 }
             }
