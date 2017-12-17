@@ -38,8 +38,6 @@ public class MainActivity extends AppCompatActivity {
     private List<String> mList;
     private ListView numerosListView;
     private AlertDialog dialog;
-    private BloqueadorDeChamadas bloqueadorDeChamadas;
-    private BloqueadorDeSms bloqueadorDeSms;
     private FileOutputStream fos = null;
     private int posicao;
     private String telAux;
@@ -56,8 +54,6 @@ public class MainActivity extends AppCompatActivity {
         mList = new ArrayList<String>();
         mArrayAdapter = new ArrayAdapter<String>(MainActivity.this,android.R.layout.simple_list_item_1, mList);
         numerosListView.setAdapter(mArrayAdapter);
-        bloqueadorDeChamadas = new BloqueadorDeChamadas();
-        bloqueadorDeSms = new BloqueadorDeSms();
         read();
         editarNumero();
 
@@ -112,8 +108,6 @@ public class MainActivity extends AppCompatActivity {
                 if(c==';') {
                     mList.add(temp);
                     mArrayAdapter.notifyDataSetChanged();
-                    bloqueadorDeChamadas.setMList(mList);
-                    bloqueadorDeSms.setMList(mList);
                     Log.e(TAG, temp);
                     temp = "";
                 }else {
@@ -242,8 +236,6 @@ public class MainActivity extends AppCompatActivity {
             }
 
             mArrayAdapter.notifyDataSetChanged();
-            bloqueadorDeChamadas.setMList(mList);
-            bloqueadorDeSms.setMList(mList);
         }else Toast.makeText(MainActivity.this,"Este número já se encontra na lista!",Toast.LENGTH_LONG).show();
     }
 

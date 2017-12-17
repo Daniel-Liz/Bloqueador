@@ -13,6 +13,8 @@ import android.util.Log;
 
 import org.w3c.dom.Text;
 
+import java.io.FileInputStream;
+import java.lang.reflect.Method;
 import java.util.List;
 
 /**
@@ -21,9 +23,8 @@ import java.util.List;
 
 public class BloqueadorDeSms extends BroadcastReceiver {
 
-
-    private static List<String> mList;
     private static final  String TAG = "BloqueadorDeSms";
+    private String FILENAME = "contatos_file";
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -48,36 +49,50 @@ public class BloqueadorDeSms extends BroadcastReceiver {
                     }
                     phoneNumber = currentMessage.getDisplayOriginatingAddress();
 
+                    try {
+                        FileInputStream fin = context.openFileInput(FILENAME);
+                        int c;
+                        String temp = "";
+                        while ((c = fin.read()) != -1) {
+                            if (c == ';') {
+                                if(temp.equals("0"+phoneNumber.substring(3))){
 
-                    if(getMList().contains("0"+phoneNumber.substring(3))) {
-                        abortBroadcast();
-                        Uri uriSMS = Uri.parse("content://sms/inbox");
+                                    abortBroadcast();
+                                    Uri uriSMS = Uri.parse("content://sms/inbox");
 
-                        Cursor cursor = context.getContentResolver().query(uriSMS, null, null, null, null);
+                                    Cursor cursor = context.getContentResolver().query(uriSMS, null, null, null, null);
 
-                        cursor.moveToFirst();
+                                    cursor.moveToFirst();
 
-                        if(cursor.getCount() > 0){
-                            do {
-                                Log.e(TAG, cursor.getString(2)+"   "+phoneNumber);
-                                if (cursor.getString(2).equals(phoneNumber)){
-                                    Log.e(TAG, cursor.getInt(1)+"   "+cursor.getString(2));
-                                    int id = cursor.getInt(1);
-                                    context.getContentResolver().delete(Uri.parse("content://sms/"+id), null,null);
+                                    if(cursor.getCount() > 0){
+                                        do {
+                                            Log.e(TAG, cursor.getString(2)+"   "+phoneNumber);
+                                            if (cursor.getString(2).equals(phoneNumber)){
+                                                Log.e(TAG, cursor.getInt(1)+"   "+cursor.getString(2));
+                                                int id = cursor.getInt(1);
+                                                context.getContentResolver().delete(Uri.parse("content://sms/"+id), null,null);
+                                                return;
+                                            }
+                                        }while(cursor.moveToNext());
+                                    }
+
+                                    Log.e(TAG, temp);
+                                    fin.close();
                                     return;
                                 }
-                            }while(cursor.moveToNext());
+
+                                temp = "";
+                            } else {
+                                temp = temp + Character.toString((char) c);
+                            }
+
                         }
+                        fin.close();
+                    }catch(Exception e){
+                        Log.e(TAG, e.getMessage());
                     }
                 }
             }
         }
-    }
-
-    public void setMList(List<String> mList){
-        this.mList = mList;
-    }
-    public List<String> getMList(){
-        return mList;
     }
 }
